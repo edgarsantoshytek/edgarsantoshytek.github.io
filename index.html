@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9g-Ef6loDwIupnMZdmS-S-feVOgNJ8Vc"></script>
+
+<html lang="en">
+<head>
+  <title>Proyecto RV - Simulador de apagado de inciendos</title>
+  
+  <style>
+            #editorToolbar{
+                border: 2px solid black;
+                margin: 10px;
+                padding: 10px;
+                width:45%;
+                float:right;
+            }
+            
+            div.helper{
+                border: 2px solid black;
+                margin: 10px;
+                padding: 10px;
+                width:43%;
+                float:right;
+            }
+            div.content{
+                border: 2px solid black;
+                width:32%;
+                display: block;
+                margin-top: 10px;
+                float: left;
+            }
+            
+            div.content100{
+                border: 2px solid black;
+                width:100%;
+                display: block;
+                margin-top: 10px;
+                float: left;
+            }
+            
+            div.menu{
+                border: 2px solid black;
+                width:100%;
+                display: block;
+                margin-top: 10px;
+                float: left;
+            }
+            
+            h1{
+                text-align: center;
+            }
+            
+            select{
+                display: block-inline;
+            }
+            
+            select.multiple{
+                display: block;
+                width: 100%;
+            }
+            
+            input{
+            display: block-inline;
+            margin: 5px;
+            }
+      
+      
+      #themap{
+          width:100%;
+          height: 400px;
+          background-color: aqua;
+      }
+        </style>
+        
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <script type="text/javascript" src="jquery.js"></script>
+        <script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+        <script type="text/javascript" src="webgl-utils.js"></script>
+        
+        <!-- Esto es el Fragment Shader: El que controla el color de las cosas-->
+        <script id="shader-fs" type="x-shader/x-fragment">
+            precision mediump float;
+
+            varying vec2 vTextureCoord;
+            varying vec3 vLightWeighting;
+
+            uniform sampler2D uSampler;
+
+            void main(void) {
+                vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+                gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
+            }
+        </script>
+        
+        
+        <!-- Esto es el Vertex Shader: Controla la posicion de los vertices-->
+        <script id="shader-vs" type="x-shader/x-vertex">
+            attribute vec3 aVertexPosition;
+            attribute vec3 aVertexNormal;
+            attribute vec2 aTextureCoord;
+
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+            uniform mat3 uNMatrix;
+
+            uniform vec3 uAmbientColor;
+
+            uniform vec3 uLightingDirection;
+            uniform vec3 uDirectionalColor;
+
+            uniform bool uUseLighting;
+
+            varying vec2 vTextureCoord;
+            varying vec3 vLightWeighting;
+
+            void main(void) {
+            
+                //vec3 aVertexNormalNormalized = normalize(aVertexNormal);
+                //vec3 uLightingDirectionNormalized = normalize(uLightingDirection);
+            
+                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+                vTextureCoord = aTextureCoord;
+
+                if (false) {
+                    vLightWeighting = vec3(1.0, 1.0, 1.0);
+                } else {
+                    vec3 transformedNormal = uNMatrix * aVertexNormal;
+                    float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+                    vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+                    //vLightWeighting = normalize(vLightWeightingA);
+                }
+            }
+        </script>
+        
+        <!--<script type="text/javascript" src="ModelClass.js"></script>
+        <script type="text/javascript" src="BarrelClass.js"></script>
+        <script type="text/javascript" src="TochaClass.js"></script>
+        <script type="text/javascript" src="ExtintorClass.js"></script>
+        <script type="text/javascript" src="SphereClass.js"></script>
+        <script type="text/javascript" src="WebGL.js"></script>
+        <script type="text/javascript" src="Editor.js"></script>
+        <script type="text/javascript" src="project.js"></script>-->
+    
+    
+    
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="icon" href="img/logoico.png">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<style>
+    .navbar-brand {
+  padding: 0px;
+}
+.navbar-brand>img {
+  height: 100%;
+  padding: 15px;
+  width: auto;
+}
+    
+    body{
+    }
+    
+    div.zebra{
+        background-color: darkgray;
+    }
+    
+    .apolo-footer{
+        background-color:dimgray; 
+    }
+    h3{
+        text-align:center;
+    }
+    div.blue{
+        /*background: linear-gradient(#38415E, #18213E);*/
+        background : #2D2D2F;
+    }
+    
+    div.blue > div > div > h3{
+        color : white;
+    }
+    div.blue > div > div > h1{
+        color : white;
+    }
+    div.blue > div > div > p{
+        color : white;
+    }
+    div{
+        border:0px;
+        margin:0px;
+        padding:0px;
+        
+    }
+<<<<<<< HEAD
+    
+    video{
+    padding-left:75px;
+    }
+    iframe{
+    padding-left:75px;
+    }
+    
+=======
+>>>>>>> parent of d1fad36... Video
+</style>
+<body>
+
+<div class="container">
+    
+</div>
+    
+
+
+
+<div class="container-fluid">
+    <br>
+    <br>
+    <br>
+    <br>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+     <a class="navbar-brand" href="#"><img src="img/logoico.png"/></a>
+        <!--<a class="navbar-brand" href="http://disputebills.com"><img src="https://res.cloudinary.com/candidbusiness/image/upload/v1455406304/dispute-bills-chicago.png" alt="Dispute Bills"></a>-->
+    </div>
+    <!--<ul class="nav navbar-nav">
+      <li class="active"><a href="#">Home</a></li>
+      <li><a href="#">Link</a></li>
+      <li><a href="#">Link</a></li>
+    </ul>-->
+    <div class="collapse navbar-collapse" id="navbar">
+        <ul class="nav navbar-nav navbar-right">
+        <li><a href="#project">Proyecto</a></li>
+        <li><a href="#virtual">Recorrido Virtual</a></li>
+        <li><a href="#about-us">Nosotros</a></li>
+        <li><a href="#us">Contáctanos</a></li>
+    </ul>
+    </div>
+    
+  </div>
+</nav>
+    
+    
+    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+        <!-- Esto son los puntitos -->
+        <ol class="carousel-indicators">
+          <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+          <li data-target="#myCarousel" data-slide-to="1"></li>
+          <li data-target="#myCarousel" data-slide-to="2"></li>
+        </ol>
+
+        <!-- Esto son las imagenes del carusel -->
+        <div class="carousel-inner">
+          <div class="item active">
+            <img src="img/01.png" alt="Imagen 1" style="width:100%;">
+          </div>
+
+          <div class="item">
+            <img src="img/02.png" alt="Imagen 2" style="width:100%;">
+          </div>
+
+          <div class="item">
+            <img src="img/05.png" alt="Imagen 3" style="width:100%;">
+          </div>
+        </div>
+
+        <!-- Las flechas -->
+        <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+          <span class="glyphicon glyphicon-chevron-left"></span>
+          <span class="sr-only">Anterior</span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" data-slide="next">
+          <span class="glyphicon glyphicon-chevron-right"></span>
+          <span class="sr-only">Siguiente</span>
+        </a>
+      </div>
+    
+    
+    
+    
+    
+</div>
+
+<div class="container-fluid">
+        <div class="blue">
+            <div class="row" id="project">
+                <div class="col-sm-12"><h1 class="text-center">Sobre el proyecto</h1></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <h3>¿Cómo inician los incendios?</h3>
+                    <p>En los edificios, los fuegos (No aplica el termino "incedios") pueden
+                    empezar por causas muy variadas: Fallos en las instalaciones eléctricas
+                    o de combustión, como las calderas, escapeces de combustible, accidentes
+                    en la cocina, niños jugando con mecheros o fósforos, o accidentes que
+                    implican otras fuentes de fuego como veas y cigarrillos.</p>
+                </div>
+                <div class="col-sm-4">
+                    <h3>Tipo de incendio a tratar</h3>
+                    <p>De las cinco clases de incendio que existen según la clasificación
+                    presente en Estados Unidos y México, el tipo de incendio simulado
+                    más certero es un incendio de tipo K. La clase tipo K pertenece a
+                    los fuegos en cocinas.</p>
+                </div>
+                <div class="col-sm-4">
+                    <h3>Tratamiento</h3>
+                    <p>La terapia de exposición se usa para tratar diversos trastornos
+                    de ansiedad, particularmente los cosas de anciedad excesiva específica
+                    e irracional.</p>
+                    <p>Este tratamiento de la ansiedad es una técnica muy practicada
+                    en la terapia cognitivo-conductual (TCC) En general, el tratamiento
+                    consiste en exponer al paciente al objeto o situación que teme.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-sm-4">
+                    <h3>Entrenamiento</h3>
+                    <p>Tiene como propósito entrenar para que las persoans sepan como
+                    actuar en caso de que un incendio comience dentro de su hogar.</p>
+                </div>
+                <div class="col-sm-4">
+                    <h3>Ambiente</h3>
+                    <p>Está hubicado en una cocina cuadrada. Nótese que la simulación
+                    está libre de obstáculos con el fin de mejorar la experiencia de
+                    los usuarios.</p>
+                </div>
+                <div class="col-sm-4">
+                    <h3>El extintor</h3>
+                    <p>Se podría definir un extintor como un aparato autónomo.
+                    Diseñado como un cilindro que puede ser desplazado por una
+                    sola persona y que usando un mecanismo de impulsión bajo
+                    presión de un gas o presión mecánica, lanza un agente extintor
+                    hacia la base del fuego, para lograr extinguirlo.</p>
+                </div>
+            </div>
+            
+        </div>
+        
+        
+        <div class="row" id="virtual">
+            <div class="col-sm-12"><h1 class="text-center">
+                Recorrido virtual por el escenario</h1>
+                <br>
+                <a class="btn btn-primary btn-block btn-lg" style="margin: auto; border: 5px;" href="https://neethermit.github.io/PolyRace/Kitchen.html">Ver la cocina</a>
+                <br>
+                
+            </div>
+            
+        </div>
+        
+        <!--<div class="row">
+            <div class="col-sm-12">
+                <!-- AQUI ESTA EL CANVAS DE WEBGL -->
+                <!--<canvas id="lesson01-canvas" style="border: none; float:left;" width="640" height="480"></canvas>
+            </div>
+            
+        </div>-->
+        
+        <div class="blue">
+            
+            <div class="row" id="about-us">
+                <div class="col-sm-12"><h1 class="text-center">Quienes somos</h1></div>
+            </div>
+            
+            <div class="row">
+                <div class="col-sm-4">
+                    <img src="img/RV_00005.png" class="img-responsive"/>
+                    <h1>Yamil Enrique Yáñez Morales</h1>
+                    <h3>Programador del Motor Gráfico</h3>
+                </div>
+                <div class="col-sm-4">
+                    <img src="img/RV_00001.png" class="img-responsive"/>
+                    <h1>Esteban Eduardo Cerda Sepúlveda</h1>
+                    <h3>Programador del Háptico</h3>
+                </div>
+                <div class="col-sm-4">
+                    <img src="img/RV_00003.png" class="img-responsive"/>
+                    <h1>Luis Carlos Núñez Guerra</h1>
+                    <h3>Investigación y Documentación</h3>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-sm-4">
+                    <img src="img/RV_00004.png" class="img-responsive"/>
+                    <h1>Salvador Teniente Martínez</h1>
+                    <h3>Multimedia y Difusión</h3>
+                </div>
+                <div class="col-sm-4">
+                    <img src="img/RV_00002.png" class="img-responsive"/>
+                    <h1>Jerson</h1>
+                    <h3>Modelador y Animador</h3>
+                </div>
+                <div class="col-sm-4">
+                    <img src="img/RV_00000.png" class="img-responsive"/>
+                    <h1>Edgar Abraham Santos Cervantes</h1>
+                    <h3>Programador Web</h3>
+                </div>
+            </div>
+
+        </div>
+        
+        
+        
+        <div class="row" id="us">
+            <div class="col-sm-12"><h1 class="text-center">¡Visítamos en la Expo LMAD!</h1></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12"><h2 class="text-center">Estaremos en la Facultad de Ciencias Fisico Matemáticas en Mayo.</h2></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12"><h3>Como llegar:</h3></div>
+        </div>
+        
+        <div class="row">
+            <div class="col-sm-6">
+                <!--<img src="img/map.png" class="img-responsive"/>-->
+                <div id="themap"></div>
+            </div>
+            <div class="col-sm-6">
+                <!--<div class="container-fluid">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <img src="img/youtube.png" width="50px" style="display:inline">
+                            <h4 style="display:inline">APOLO</h4>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <img src="img/facebook.png" width="50px" style="display:inline">
+                            <h4 style="display:inline">APOLO</h4>
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <img src="img/twitter.png" width="50px" style="display:inline">
+                            <h4 style="display:inline">APOLO</h4>
+                        </div>
+                    </div>
+                </div>-->
+                <h3>La Universidad Autónoma de Nuevo León se encuentra en:</h3>
+                <h4>Pedro de Alba S/N, Ciudad Universitaria, San Nicolás de los Garza, N.L.</h4>
+                
+            </div>
+        </div>
+        
+<<<<<<< HEAD
+        
+        
+        <div class="blue">
+            
+            <div id="video"></div>
+        <br>
+        <br>
+            
+            <div class="row">
+                <div class="col-sm-12"><h1>Video</h1></div>
+                <div class="col-sm-1"></div>
+                <div class="col-sm-8">
+                    <!--<video width="875" height="492" controls>
+                      <source src="video/01.mp4" type="video/mp4">
+                      Problema de navegador: Tu navegador no soporta la etiqueta video
+                    </video>-->
+                    <!--https://www.youtube.com/watch?v=_I_D_8Z4sJE-->
+                        
+                        <iframe width="875" height="492" src="https://www.youtube.com/embed/ssfGhXIzQ-o" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+                <div class="col-sm-1"></div>
+            </div>
+        </div>
+        
+=======
+>>>>>>> parent of d1fad36... Video
+    </div>
+    
+<div class="apolo-footer">
+    <h4>APOLO. Apaga los incendios, prolonga tu vida.</h4>
+    <br>
+    <br>
+</div>
+  
+
+</body>
+</html>
+
+<script>
+        
+         //decl var google;
+        let map;
+        function loadMap(){
+		
+            let latLng = new google.maps.LatLng(-34.9290, 138.6010);
+
+            let mapOptions = {
+                center: latLng,
+                zoom: 15,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            
+            
+
+            map = new google.maps.Map($("#themap")[0], mapOptions);
+            //alert(map);
+            //this.updateMyPosition();
+
+        }
+    
+    function updateNavigating(position){
+		let latLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+			
+        let directionsService = new google.maps.DirectionsService;
+        this.directionsDisplay = new google.maps.DirectionsRenderer;
+        
+        directionsDisplay.setMap(map);
+        
+		directionsService.route({
+			origin: latLng,
+			destination: new google.maps.LatLng(25.725583, -100.315195),
+			travelMode: google.maps.TravelMode['DRIVING']
+		}, (res, status)=>{
+			if(status == google.maps.DirectionsStatus.OK){
+				directionsDisplay.setDirections(res);
+				//this.lastPosition = position.coords;
+				//load.dismiss();
+			}
+			else{
+				//this.showAlert("","Hubo un error al tratar de conectarse con Google Maps. Por favor verifique su conexión a internet e inténtelo de nuevo.");
+				console.warn(status);
+				//load.dismiss();
+			}
+		});
+		
+	}
+    
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else { 
+            ///x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+        
+    $(document).ready(()=>{
+        loadMap();
+        if(navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(updateNavigating);
+        }
+    });
+        
+        
+    </script>
